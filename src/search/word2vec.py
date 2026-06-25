@@ -19,9 +19,6 @@ class Word2VecSearch:
         )
         print('loaded word2vec')
 
-    # -------------------------
-    # Query vector
-    # -------------------------
     def query_vector(self, text):
         tokens = text.split()
         vectors = [
@@ -33,9 +30,6 @@ class Word2VecSearch:
             return np.zeros(self.model.vector_size)
         return np.mean(vectors, axis=0)
 
-    # -------------------------
-    # Search
-    # -------------------------
     def search(self, query, top_k=10):
         qvec = self.query_vector(query)
         scores = cosine_similarity(

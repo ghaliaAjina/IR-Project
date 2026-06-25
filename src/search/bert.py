@@ -21,18 +21,13 @@ class BertSearch:
         )
         print('loaded bert')
 
-    # -------------------------
-    # Query vector
-    # -------------------------
+ 
     def query_vector(self, text):
         return self.model.encode(
             text,
             normalize_embeddings=True
         )
 
-    # -------------------------
-    # Search
-    # -------------------------
     def search(self, query, top_k=10):
         qvec = self.query_vector(query)
         scores = cosine_similarity(

@@ -471,7 +471,6 @@
             </table>
         `;
 
-        // Build individual metric charts
         tableHTML += `<div class="chart-container">`;
         for (const metric of metrics) {
           tableHTML += `
@@ -480,7 +479,6 @@
               <div class="bar-chart">
           `;
 
-          // Sort models by metric value in descending order
           const sortedModels = Object.entries(results)
             .sort((a, b) => (b[1][metric] || 0) - (a[1][metric] || 0));
 
@@ -528,7 +526,6 @@
 
           const results = await response.json();
 
-          // Check if results contain error
           if (results.error) {
             output.innerHTML = `<p class="error">Evaluation error: ${results.error}</p>`;
           } else {
@@ -545,7 +542,6 @@
       form.addEventListener('submit', async (event) => {
         event.preventDefault();
 
-        // Validate weights if hybrid parallel search is selected
         if (serviceSelect.value === 'hybrid_parallel_search') {
           if (!validateWeights()) {
             output.innerHTML = '<p class="error">❌ Error: Alpha and Beta must sum to 1.0</p>';
@@ -557,7 +553,6 @@
 
         const data = new FormData(form);
 
-        // Only include alpha/beta if they exist and service is hybrid parallel
         if (serviceSelect.value !== 'hybrid_parallel_search') {
           data.delete('alpha');
           data.delete('beta');
