@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Search UI</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      max-width: 900px;
+      margin: 30px auto;
+      line-height: 1.5;
+      padding: 0 20px;
+      background-image: url('/static/image.png');
+      background-size: cover;
+      background-position: top center;
+      background-repeat: no-repeat;
+      background-attachment: fixed;
+    }
+
+    .page-content {
+      background: rgba(255, 255, 255, 0.92);
+      border-radius: 16px;
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.12);
+      padding: 24px;
+      backdrop-filter: blur(10px);
+    }
+
+    h1 {
+      margin-bottom: 0.5rem;
+    }
+
+    .search-wrapper {
+      display: flex;
+      justify-content: flex-start;
+    }
+
+    form {
+      display: grid;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+      max-width: 700px;
+      width: 100%;
+    }
+
+    label {
+      display: flex;
+      flex-direction: column;
+      gap: 0.25rem;
+      font-weight: 600;
+    }
+
+    input[type="text"],
+    select,
+    input[type="number"],
+    textarea {
+      padding: 0.6rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      width: fit-content;
+      padding: 0.75rem 1.25rem;
+      background: #007bff;
+      border: none;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+    }
+
+    button:hover {
+      background: #0056b3;
+    }
+
+    pre {
+      background: #f5f5f5;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      padding: 1rem;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+
+    .info {
+      color: #555;
+      margin-bottom: 1rem;
+    }
+
+    .results {
+      display: grid;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .result-card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 20px;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+      box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05);
+    }
+
+    .result-header {
+      display: flex;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      margin-bottom: 0.85rem;
+    }
+
+    .result-id {
+      color: #333;
+      font-weight: 700;
+    }
+
+    .result-text {
+      color: #444;
+      line-height: 1.7;
+      white-space: pre-wrap;
+    }
+
+    .refinement-box {
+      background: rgba(0, 123, 255, 0.06);
+      border-left: 4px solid #007bff;
+      padding: 14px 18px;
+      border-radius: 12px;
+      color: #1a3f7c;
+      margin-bottom: 1rem;
+    }
+
+    .refinement-box strong {
+      display: inline-block;
+      margin-bottom: 0.35rem;
+    }
+
+    .empty-state {
+      padding: 28px;
+      background: rgba(211, 211, 211, 0.25);
+      border-radius: 14px;
+      text-align: center;
+      color: #555;
+    }
+
+    .error {
+      color: #d32f2f;
+      font-weight: 600;
+    }
+
+    .eval-button {
+      background: #28a745;
+      margin-left: 0.75rem;
+    }
+
+    .eval-button:hover {
+      background: #218838;
+    }
+
+    .eval-button:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+    }
+
+    .evaluation-container {
+      margin-top: 2rem;
+    }
+
+    .evaluation-title {
+      font-size: 1.3rem;
+      font-weight: 700;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    .comparison-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 1.5rem;
+      background: #fff;
+      border-radius: 8px;
+      overflow: hidden;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .comparison-table thead {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+    }
+
+    .comparison-table th {
+      padding: 1rem;
+      text-align: left;
+      font-weight: 600;
+    }
+
+    .comparison-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid #eee;
+    }
+
+    .comparison-table tbody tr:hover {
+      background: rgba(102, 126, 234, 0.05);
+    }
+
+    .metric-value {
+      font-weight: 600;
+      color: #667eea;
+    }
+
+    .best-value {
+      background: rgba(40, 167, 69, 0.15);
+      color: #28a745;
+      font-weight: 700;
+    }
+
+    .chart-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 1.5rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .metric-chart {
+      background: #fff;
+      border-radius: 8px;
+      padding: 1.5rem;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .metric-chart-title {
+      font-weight: 600;
+      margin-bottom: 1rem;
+      color: #333;
+    }
+
+    .bar-chart {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .bar-item {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+
+    .bar-label {
+      min-width: 150px;
+      font-size: 0.9rem;
+      font-weight: 500;
+    }
+
+    .bar-background {
+      flex: 1;
+      background: #f0f0f0;
+      border-radius: 4px;
+      height: 24px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+      border-radius: 4px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      padding-right: 0.5rem;
+      color: white;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .validation-error {
+      color: #d32f2f;
+      font-size: 0.85rem;
+      margin-top: 0.25rem;
+      font-weight: 500;
+    }
+
+    .validation-warning {
+      background: rgba(211, 134, 33, 0.1);
+      border: 1px solid #d68621;
+      border-radius: 6px;
+      padding: 0.75rem;
+      color: #d68621;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      display: none;
+    }
+
+    .validation-warning.show {
+      display: block;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="page-content">
+    <h1>Search UI</h1>
+    <p class="info">Select a service, enter a query, and click Search to see results from your retrieval models.</p>
+
+    <div class="search-wrapper">
+      <form id="search-form">
+        <label>
+          Search service
+          <select id="service" name="service">
+            {% for service in services %}
+            <option value="{{ service }}">{{ service }}</option>
+            {% endfor %}
+          </select>
+        </label>
+
+        <label>
+          Query
+          <textarea id="query" name="query" rows="3" placeholder="Enter your search query"></textarea>
+        </label>
+
+        <label>
+          Top K
+          <input id="top_k" name="top_k" type="number" value="10" min="1" max="100" />
+        </label>
+
+        <div id="hybrid-params" style="display: none;">
+          <label>
+            Alpha (BM25 weight)
+            <input id="alpha" name="alpha" type="number" value="0.5" min="0" max="1" step="0.1" />
+          </label>
+          <label>
+            Beta (Word2Vec weight)
+            <input id="beta" name="beta" type="number" value="0.5" min="0" max="1" step="0.1" />
+          </label>
+          <div id="weight-validation" class="validation-warning">
+            ⚠️ Alpha and Beta must sum to 1.0 (current sum: <span id="weight-sum">1.0</span>)
+          </div>
+        </div>
+
+        <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+          <button type="submit">Search</button>
+          <button type="button" id="eval-btn" class="eval-button">Evaluate Models</button>
+        </div>
+      </form>
+    </div>
+
+    <div id="output"></div>
+
+    <script>
+      const form = document.getElementById('search-form');
+      const output = document.getElementById('output');
+      const evalBtn = document.getElementById('eval-btn');
+      const serviceSelect = document.getElementById('service');
+      const hybridParams = document.getElementById('hybrid-params');
+      const alphaInput = document.getElementById('alpha');
+      const betaInput = document.getElementById('beta');
+      const weightValidation = document.getElementById('weight-validation');
+      const weightSum = document.getElementById('weight-sum');
+
+      function validateWeights() {
+        const alpha = parseFloat(alphaInput.value) || 0;
+        const beta = parseFloat(betaInput.value) || 0;
+        const sum = Math.round((alpha + beta) * 100) / 100; // Round to 2 decimals
+        weightSum.textContent = sum.toFixed(2);
+
+        if (Math.abs(sum - 1.0) > 0.01) { // Allow 0.01 tolerance
+          weightValidation.classList.add('show');
+          return false;
+        } else {
+          weightValidation.classList.remove('show');
+          return true;
+        }
+      }
+
+      alphaInput.addEventListener('input', validateWeights);
+      betaInput.addEventListener('input', validateWeights);
+
+      // Show/hide alpha and beta inputs based on selected service
+      serviceSelect.addEventListener('change', () => {
+        if (serviceSelect.value === 'hybrid_parallel_search') {
+          hybridParams.style.display = 'grid';
+          validateWeights();
+        } else {
+          hybridParams.style.display = 'none';
+        }
+      });
+
+      function buildResultCard(doc) {
+        return `
+          <div class="result-card">
+            <div class="result-header">
+              <div class="result-id">Document ID: ${doc.doc_id}</div>
+            </div>
+            <div class="result-text">${doc.text || '<em>No text available</em>'}</div>
+          </div>
+        `;
+      }
+
+      function buildRefinementBox(refinement) {
+        return `
+          <div class="refinement-box">
+            <strong>Query refinement</strong>
+            <div>Original: ${refinement.original_query}</div>
+            <div>Refined: ${refinement.refined_query}</div>
+            <div>Processed tokens: ${refinement.processed_query.join(', ')}</div>
+          </div>
+        `;
+      }
+
+      function findBestValue(results, metric) {
+        let best = -1;
+        let bestModel = null;
+        for (const [model, metrics] of Object.entries(results)) {
+          if (metrics[metric] > best) {
+            best = metrics[metric];
+            bestModel = model;
+          }
+        }
+        return bestModel;
+      }
+
+      function buildEvaluationUI(results) {
+        const metrics = ["MAP", "Recall", "Precision@10", "nDCG"];
+
+        // Build comparison table
+        let tableHTML = `
+          <div class="evaluation-container">
+            <div class="evaluation-title">📊 Model Evaluation Comparison</div>
+            <table class="comparison-table">
+              <thead>
+                <tr>
+                  <th>Model</th>
+                  ${metrics.map(m => `<th>${m}</th>`).join('')}
+                </tr>
+              </thead>
+              <tbody>
+        `;
+
+        for (const [model, modelMetrics] of Object.entries(results)) {
+          tableHTML += `<tr>`;
+          tableHTML += `<td style="font-weight: 600;">${model}</td>`;
+          for (const metric of metrics) {
+            const value = (modelMetrics[metric] || 0).toFixed(4);
+            const isBest = findBestValue(results, metric) === model ? 'best-value' : '';
+            tableHTML += `<td class="${isBest}"><span class="metric-value">${value}</span></td>`;
+          }
+          tableHTML += `</tr>`;
+        }
+
+        tableHTML += `
+              </tbody>
+            </table>
+        `;
+
+        // Build individual metric charts
+        tableHTML += `<div class="chart-container">`;
+        for (const metric of metrics) {
+          tableHTML += `
+            <div class="metric-chart">
+              <div class="metric-chart-title">${metric}</div>
+              <div class="bar-chart">
+          `;
+
+          // Sort models by metric value in descending order
+          const sortedModels = Object.entries(results)
+            .sort((a, b) => (b[1][metric] || 0) - (a[1][metric] || 0));
+
+          for (const [model, modelMetrics] of sortedModels) {
+            const value = modelMetrics[metric] || 0;
+            const percentage = (value * 100).toFixed(1);
+            tableHTML += `
+              <div class="bar-item">
+                <div class="bar-label">${model}</div>
+                <div class="bar-background">
+                  <div class="bar-fill" style="width: ${percentage}%">
+                    ${percentage}%
+                  </div>
+                </div>
+              </div>
+            `;
+          }
+
+          tableHTML += `
+              </div>
+            </div>
+          `;
+        }
+
+        tableHTML += `</div></div>`;
+        return tableHTML;
+      }
+
+      evalBtn.addEventListener('click', async () => {
+        evalBtn.disabled = true;
+        const originalText = evalBtn.textContent;
+        evalBtn.innerHTML = '<span class="loading-spinner"></span> Evaluating...';
+        output.innerHTML = '<div class="empty-state">Running model evaluation... This may take a moment.</div>';
+
+        try {
+          const response = await fetch('/evaluate', { method: 'GET' });
+
+          if (!response.ok) {
+            const error = await response.text();
+            output.innerHTML = `<p class="error">Evaluation failed: ${error}</p>`;
+            evalBtn.textContent = originalText;
+            evalBtn.disabled = false;
+            return;
+          }
+
+          const results = await response.json();
+
+          // Check if results contain error
+          if (results.error) {
+            output.innerHTML = `<p class="error">Evaluation error: ${results.error}</p>`;
+          } else {
+            output.innerHTML = buildEvaluationUI(results);
+          }
+        } catch (error) {
+          output.innerHTML = `<p class="error">Error during evaluation: ${error.message}</p>`;
+        } finally {
+          evalBtn.textContent = originalText;
+          evalBtn.disabled = false;
+        }
+      });
+
+      form.addEventListener('submit', async (event) => {
+        event.preventDefault();
+
+        // Validate weights if hybrid parallel search is selected
+        if (serviceSelect.value === 'hybrid_parallel_search') {
+          if (!validateWeights()) {
+            output.innerHTML = '<p class="error">❌ Error: Alpha and Beta must sum to 1.0</p>';
+            return;
+          }
+        }
+
+        output.innerHTML = '<div class="empty-state">Running search...</div>';
+
+        const data = new FormData(form);
+
+        // Only include alpha/beta if they exist and service is hybrid parallel
+        if (serviceSelect.value !== 'hybrid_parallel_search') {
+          data.delete('alpha');
+          data.delete('beta');
+        }
+        const response = await fetch('/search', {
+          method: 'POST',
+          body: data
+        });
+
+        if (!response.ok) {
+          const error = await response.text();
+          output.innerHTML = `<p class="error">Search failed: ${error}</p>`;
+          return;
+        }
+
+        const result = await response.json();
+        const docs = result.results || [];
+
+        if (docs.length === 0) {
+          output.innerHTML = '<div class="empty-state">No documents matched your query.</div>';
+          return;
+        }
+
+        const cards = docs.map(buildResultCard).join('');
+        output.innerHTML = `
+          ${buildRefinementBox(result.query_refinement)}
+          <div class="results">
+            ${cards}
+          </div>
+        `;
+      });
+    </script>
+</body>
+
+</html>
