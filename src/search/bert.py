@@ -9,16 +9,10 @@ class BertSearch:
 
     def __init__(self):
         print('loading bert')
-        self.model = SentenceTransformer(
-            "all-MiniLM-L6-v2"
-        )
+        self.model = SentenceTransformer("all-MiniLM-L6-v2")
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "model", "bert"))
-        self.doc_vectors = joblib.load(
-            os.path.join(base_dir, "bert_doc_vectors.pkl")
-        )
-        self.doc_ids = joblib.load(
-            os.path.join(base_dir, "bert_doc_ids.pkl")
-        )
+        self.doc_vectors = joblib.load(os.path.join(base_dir, "bert_doc_vectors.pkl"))
+        self.doc_ids = joblib.load(os.path.join(base_dir, "bert_doc_ids.pkl"))
         print('loaded bert')
 
  

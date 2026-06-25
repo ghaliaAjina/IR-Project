@@ -66,13 +66,11 @@ def search_route():
         refinement = query_refiner.refine(query)
         print('refinement query:', refinement)
         
-        # Handle hybrid parallel search with alpha and beta parameters
         search_kwargs = {"top_k": top_k}
         if service_name == "hybrid_parallel_search":
             alpha = float(request.form.get("alpha", 0.5))
             beta = float(request.form.get("beta", 0.5))
             
-            # Validate that alpha and beta sum to 1
             weight_sum = round(alpha + beta, 2)
             if abs(weight_sum - 1.0) > 0.01:
                 return jsonify({"error": f"Alpha ({alpha}) and Beta ({beta}) must sum to 1.0, but sum to {weight_sum}"}), 400

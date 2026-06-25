@@ -64,9 +64,6 @@ class DB:
             conn = mysql.connector.connect(**db_config)
             cursor = conn.cursor()
 
-            # ---------------------------------------------------------
-            # 2. Create Tables
-            # ---------------------------------------------------------
             print("Creating tables...")
             
             cursor.execute("""
@@ -76,7 +73,6 @@ class DB:
                 )
             """)
 
-            # LONGTEXT is heavily recommended for raw IR documents
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS documents (
                     doc_id VARCHAR(255) PRIMARY KEY,
@@ -97,18 +93,11 @@ class DB:
             """)
             conn.commit()
 
-            # ---------------------------------------------------------
-            # 3. Load ir_dataset
-            # ---------------------------------------------------------
             dataset_name = "lotte/lifestyle/dev/search"
             print(f"Loading dataset: {dataset_name}...")
             dataset = ir_datasets.load(dataset_name)
 
-            # ---------------------------------------------------------
-            # 4. Insert Data in Batches
-            # ---------------------------------------------------------
             
-            # 4a. Insert Queries
             print("Inserting queries...")
             insert_query_sql = "INSERT IGNORE INTO queries (query_id, text) VALUES (%s, %s)"
             q_count = self.insert_in_batches(
@@ -120,7 +109,6 @@ class DB:
             print(f"✅ Processed {q_count} queries.")
             conn.commit()
 
-            # 4b. Insert Documents
             print("Inserting documents (this might take a moment depending on corpus size)...")
             insert_doc_sql = "INSERT IGNORE INTO documents (doc_id, text) VALUES (%s, %s)"
             d_count = self.insert_in_batches(
@@ -132,7 +120,6 @@ class DB:
             print(f"✅ Processed {d_count} documents.")
             conn.commit()
 
-            # 4c. Insert Qrels
             print("Inserting qrels...")
             insert_qrel_sql = "INSERT IGNORE INTO qrels (query_id, doc_id, relevance, iteration) VALUES (%s, %s, %s, %s)"
             qr_count = self.insert_in_batches(
@@ -152,7 +139,6 @@ class DB:
                 conn.rollback()
 
         finally:
-            # Clean up connections
             if 'cursor' in locals():
                 cursor.close()
             if 'conn' in locals() and conn.is_connected():
@@ -166,12 +152,7 @@ class DB:
                 cursor_read = conn.cursor(dictionary=True)
                 cursor_write = conn.cursor()
 
-                # Initialize your preprocessor
                 preprocessor = Preprocessor()
-
-                # ---------------------------------------------------------
-                # 3. Create Preprocessed Tables
-                # ---------------------------------------------------------
                 print("Ensuring preprocessed tables exist...")
                 
                 cursor_write.execute("""
@@ -191,13 +172,9 @@ class DB:
                 """)
                 conn.commit()
 
-                # ---------------------------------------------------------
-                # 4. Helper Function for Batch Processing
-                # ---------------------------------------------------------
                 def process_table(source_table, target_table, id_col, text_col, batch_size=5000):
                     print(f"\nProcessing {source_table} -> {target_table}...")
                     
-                    # Get total row count
                     cursor_read.execute(f"SELECT COUNT(*) as total FROM {source_table}")
                     total_rows = cursor_read.fetchone()['total']
                     print(f"Total rows to process: {total_rows}")
@@ -206,7 +183,6 @@ class DB:
                     total_inserted = 0
                     
                     while offset < total_rows:
-                        # Fetch a batch from the raw table
                         cursor_read.execute(f"SELECT {id_col}, {text_col} FROM {source_table} LIMIT %s OFFSET %s", (batch_size, offset))
                         rows = cursor_read.fetchall()
                         
@@ -227,7 +203,6 @@ class DB:
                                 
                             processed_data.append((record_id, clean_text))
                         
-                        # Insert the processed batch
                         insert_sql = f"INSERT IGNORE INTO {target_table} ({id_col}, text_clean) VALUES (%s, %s)"
                         cursor_write.executemany(insert_sql, processed_data)
                         conn.commit()
@@ -236,11 +211,7 @@ class DB:
                         offset += batch_size
                         print(f"  ... Processed {total_inserted} / {total_rows}")
 
-                # ---------------------------------------------------------
-                # 5. Execute Pipeline
-                # ---------------------------------------------------------
                 
-                # Process Queries
                 process_table(
                     source_table="queries",
                     target_table="preprocessed_queries",
@@ -248,7 +219,6 @@ class DB:
                     text_col="text"
                 )
 
-                # Process Documents
                 process_table(
                     source_table="documents",
                     target_table="preprocessed_documents",

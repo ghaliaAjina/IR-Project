@@ -14,9 +14,7 @@ class HybridParallelBM25Word2Vec:
         self.doc_ids = self.bm25_search.doc_ids
     
     def search(self, query, top_k=10, alpha=0.5, beta=0.5):
-        """
-        Retrieve using both BM25 and Word2Vec, combine scores, return top-k
-        """
+        
         bm25_tokens = query.lower().split()
         bm25_scores = self.bm25_search.bm25.get_scores(bm25_tokens)
         
@@ -38,22 +36,16 @@ class HybridParallelBM25Word2Vec:
 
 
 class HybridSerialBM25BERT:
-    """
-    Serial Hybrid: BM25 retrieval followed by BERT re-ranking
-    First stage: BM25 retrieves candidate documents
-    Second stage: BERT re-ranks the candidates
-    """
+   
     def __init__(self, bm25_search, bert_search, candidate_k=100):
         print('loading hybrid sreial')
         self.bm25_search = bm25_search
         self.bert_search = bert_search
-        self.candidate_k = candidate_k  # Number of candidates from BM25
+        self.candidate_k = candidate_k  
         self.doc_ids = self.bm25_search.doc_ids
     
     def search(self, query, top_k=10):
-        """
-        Retrieve using BM25, then re-rank with BERT
-        """
+        
         bm25_candidates = self.bm25_search.search(query, top_k=self.candidate_k)
         
         query_embedding = self.bert_search.query_vector(query)
