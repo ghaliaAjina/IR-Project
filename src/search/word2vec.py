@@ -11,12 +11,8 @@ class Word2VecSearch:
         print('loading word2vec')
         base_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..", "model", "word2vec"))
         self.model = Word2Vec.load(os.path.join(base_dir, "word2vec_model.model"))
-        self.doc_vectors = joblib.load(
-            os.path.join(base_dir, "word2vec_doc_vectors.pkl")
-        )
-        self.doc_ids = joblib.load(
-            os.path.join(base_dir, "word2vec_doc_ids.pkl")
-        )
+        self.doc_vectors = joblib.load(os.path.join(base_dir, "word2vec_doc_vectors.pkl"))
+        self.doc_ids = joblib.load(os.path.join(base_dir, "word2vec_doc_ids.pkl"))
         print('loaded word2vec')
 
     def query_vector(self, text):

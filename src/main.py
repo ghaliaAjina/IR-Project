@@ -63,7 +63,10 @@ def search_route():
         return jsonify({"error": f"Unknown service: {service_name}"}), 400
 
     try:
-        refinement = query_refiner.refine(query)
+        refinement = query_refiner.refine(
+            query=query,
+            user_id="default"
+        )
         print('refinement query:', refinement)
         
         search_kwargs = {"top_k": top_k}
@@ -79,6 +82,7 @@ def search_route():
             search_kwargs["beta"] = beta
         
         doc_ids = service.search(refinement["processed_query_text"], **search_kwargs)
+        query_refiner.update_user_profile("default",refinement["corrected_query"])
         docs_by_id = db.get_documents_by_ids(doc_ids)
         results_with_text = [
             {"doc_id": doc_id, "text": docs_by_id.get(doc_id, "")}
