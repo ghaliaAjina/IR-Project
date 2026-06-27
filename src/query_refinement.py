@@ -9,68 +9,6 @@ from preprocessor import Preprocessor
 
 
 class QueryRefiner:
-    """
-    Query Refinement Service
-    ------------------------
-    1. Spelling Correction
-    2. Domain-aware Query Expansion (LoTTE Lifestyle)
-    3. WordNet Fallback
-    4. User Personalization
-    5. Preprocessing
-    """
-
-    DOMAIN_SYNONYMS = {
-    # Music
-    "guitar": ["acoustic", "electric", "strings", "tuner", "capo", "frets", "ukulele"],
-    "ukulele": ["guitar", "strings", "tuner"],
-    "bass": ["guitar", "strings"],
-    "music": ["notes", "tempo", "rhythm", "beat", "scale", "key", "octave"],
-    "tempo": ["bpm", "beat", "rhythm"],
-    "beat": ["tempo", "rhythm"],
-    "scale": ["mode", "key", "notes"],
-    "key": ["scale", "notes"],
-    "octave": ["notes", "pitch"],
-    "piano": ["keyboard", "music"],
-    "drums": ["drumsticks", "rhythm"],
-
-    # Coffee
-    "coffee": ["espresso", "americano", "latte", "cappuccino", "beans", "grinder", "brew"],
-    "espresso": ["coffee", "beans"],
-
-    # Pets
-    "dog": ["puppy", "breed", "feeding"],
-    "mastiff": ["dog", "puppy"],
-    "cat": ["kitten", "feline"],
-    "rabbit": ["bunny", "pet"],
-    "fish": ["aquarium", "tank"],
-    "aquarium": ["fish", "tank", "filter", "shrimp"],
-    "shrimp": ["aquarium", "fish"],
-    "snake": ["reptile"],
-    "betta": ["fish", "aquarium"],
-    "goldfish": ["fish", "aquarium"],
-
-    # Cycling
-    "bike": ["bicycle", "cycling", "tire", "chain", "wheel", "brake"],
-    "bicycle": ["bike", "cycling"],
-    "cycling": ["bike", "bicycle"],
-
-    # Cars
-    "car": ["engine", "battery", "radiator", "brake", "coolant", "transmission"],
-    "engine": ["car", "motor"],
-    "battery": ["car", "voltage"],
-    "radiator": ["coolant", "engine"],
-
-    # Gardening
-    "garden": ["plants", "soil", "watering", "fertilizer"],
-    "plant": ["garden", "soil"],
-    "tomato": ["garden", "plants"],
-
-    # DIY
-    "paint": ["primer", "latex", "acrylic"],
-    "wood": ["timber"],
-    "garage": ["door"],
-    "door": ["garage"],
-}
 
     STOP_EXPANSION = {
     "world","war","history","time","day","year","part",
@@ -109,9 +47,7 @@ class QueryRefiner:
 
 
     def spelling_correction(self, query):
-
         corrected = []
-
         for word in query.split():
             corrected.append(self.spell.correction(word) or word)
 
@@ -120,36 +56,34 @@ class QueryRefiner:
 
 
     def synonym_expansion(self, query):
-        query_lower = query.lower()
-        expanded = query.split()
-        for phrase, syns in self.DOMAIN_SYNONYMS.items():
-            if phrase in query_lower:
-                for s in syns[:2]:
-                    if s not in expanded:
-                        expanded.append(s)
-                return " ".join(expanded)
+       query_lower = query.lower()
+       tokens = query_lower.split()
+       expanded = query.split()
 
+       for token in tokens[:2]:
+        if (
+            token in self.STOP_EXPANSION
+            or token.isdigit()
+            or not token.isalpha()
+        ):
+            continue
+        synonyms = []
 
-        for token in query_lower.split()[:2]:
-            if token in self.STOP_EXPANSION or token.isdigit():
-                continue
-            synsets = wn.synsets(token)
-            if not synsets:
-                continue
-            syn = synsets[0]
-
+        for syn in wn.synsets(token):
             for lemma in syn.lemmas():
-                word = lemma.name().replace("_", " ").lower()
+                word = lemma.name().replace("_", " ").lower().strip()
                 if (
                     word != token
                     and len(word.split()) == 1
                     and word not in expanded
+                    and word not in synonyms
                 ):
-                    expanded.append(word)
-                    break
+                    synonyms.append(word)
+
+        if synonyms:
+            expanded.append(synonyms[0])
 
         return " ".join(dict.fromkeys(expanded))
-
 
     def personalize(self, query, user_id="default"):
         profiles = self._load_profiles()
